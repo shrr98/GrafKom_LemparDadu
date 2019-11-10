@@ -28,34 +28,22 @@ function main() {
         scene.add(light);
     }
 
+    {
+        X = [5,3,6,4];
+        Y = [5,2,6,1];
+        Z = [2,3,1,4];
+    }
+
     objects = [];
     const geometry = new THREE.BoxBufferGeometry(5,5,5);
     
-    {
-        var materials = [
-            new THREE.MeshLambertMaterial({
-                color : 0xffffff,
-                map: new THREE.TextureLoader().load('img/inverted-dice-1.png')
-            }),
-            new THREE.MeshLambertMaterial({
-                map: new THREE.TextureLoader().load('img/inverted-dice-2.png')
-            }),
-            new THREE.MeshLambertMaterial({
-                map: new THREE.TextureLoader().load('img/inverted-dice-3.png')
-            }),
-            new THREE.MeshLambertMaterial({
-                map: new THREE.TextureLoader().load('img/inverted-dice-4.png')
-            }),
-            new THREE.MeshLambertMaterial({
-                map: new THREE.TextureLoader().load('img/inverted-dice-5.png')
-            }),
-            new THREE.MeshLambertMaterial({
-                map: new THREE.TextureLoader().load('img/inverted-dice-6.png')
-            })
-         ];
-    }
-    
-    const material = new THREE.MeshPhongMaterial({color: 0x0f0fff});
+   var materials = [];
+
+    // var fontUsed = null;
+    // const loader = new THREE.FontLoader(manager);
+    // loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', (font) => {
+    //     fontUsed = font;
+    // });
     const threshold = 0.01;
 
     function resizeRendererToDisplaySize(renderer) {
@@ -107,12 +95,35 @@ function main() {
                     obj.inc = -1;
                 }
                 else if(obj.inc==-1){
-                    console.log('masuk lambat');
                     if(Math.abs(obj.rotation.x - obj.target.x) <= threshold && Math.abs(obj.rotation.y - obj.target.y) <= threshold && Math.abs(obj.rotation.z - obj.target.z) <= threshold){
                         obj.speed = 0;
                         obj.maxSpeed = 0;
                         obj.inc = 0;
-                        console.log("selesai");
+                        obj.rotation.x %= 2*Math.PI;
+                        obj.rotation.y %= 2*Math.PI;
+                        obj.rotation.z %= 2*Math.PI;
+                        angka = 5;
+                        isExsist = X.indexOf(angka);
+                        if(isExsist>=0){
+                            nowIndex = (isExsist + Math.round(obj.rotation.x / Math.PI * 2))%4;
+                            angka = X[nowIndex]; 
+                        }
+                        
+                        isExsist = Y.indexOf(angka);
+                        if(isExsist>=0){
+                            nowIndex = (isExsist + Math.round(obj.rotation.y / Math.PI *2))%4;
+                            angka = Y[nowIndex]; 
+                        }
+                        
+                        isExsist = Z.indexOf(angka);
+                        if(isExsist>=0){
+                            nowIndex = (isExsist + Math.round(obj.rotation.z / Math.PI * 2))%4;
+                            angka = Z[nowIndex]; 
+                        }
+
+                        scene.remove(obj.label);
+                        createLabel(angka, obj);
+                        console.log(angka, obj.rotation.x * 180/Math.PI, obj.rotation.y * 180/Math.PI, obj.rotation.z * 180/Math.PI);
                         continue;
                     }
                     
@@ -144,11 +155,64 @@ function main() {
         }
     }
 
+    function createLabel(num, obj){
+        console.log(obj);
+        const loader = new THREE.FontLoader();
+        loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', (font) => {
+        var geometry = new THREE.TextBufferGeometry(num.toString(), {
+            font : font,
+            size : 5.0,
+            height : 1,
+            curveSegments : 5,
+            bevelEnabled : true,
+            bevelThickness : 0.05,
+            bevelSize : .01,
+            bevelSegments : 1
+          });
+      
+          const material = new THREE.MeshPhongMaterial({color : 0x000000});
+          const mesh = new THREE.Mesh(geometry, material);
+          mesh.num = num;
+          mesh.name = name;
+          geometry.computeBoundingBox();
+          geometry.boundingBox.getCenter(mesh.position).multiplyScalar(-1);
+        
+          mesh.position.set(obj.position.x-2, obj.position.y-10, obj.position.z);
+          obj.label = mesh;
+          scene.add(obj.label);
+        });
+    }
+
     function createDices(){
         var num = document.getElementById("dadu").selectedIndex + 1;
         var obj;
+        var skin = 'img/' + document.getElementById('skin').value + '/'; 
+        console.log(skin+'1.png');
+        {
+            var materials = [
+                new THREE.MeshLambertMaterial({
+                    map: new THREE.TextureLoader().load(skin+'1.png')
+                }),
+                new THREE.MeshLambertMaterial({
+                    map: new THREE.TextureLoader().load(skin+'2.png')
+                }),
+                new THREE.MeshLambertMaterial({
+                    map: new THREE.TextureLoader().load(skin+'3.png')
+                }),
+                new THREE.MeshLambertMaterial({
+                    map: new THREE.TextureLoader().load(skin+'4.png')
+                }),
+                new THREE.MeshLambertMaterial({
+                    map: new THREE.TextureLoader().load(skin+'5.png')
+                }),
+                new THREE.MeshLambertMaterial({
+                    map: new THREE.TextureLoader().load(skin+'6.png')
+                })
+             ];
+        }
         for(obj of objects) {
-            scene.remove(obj)
+            scene.remove(obj.label);
+            scene.remove(obj);
         }
         objects = [];
         for(i=0; i<num; i++){
@@ -159,6 +223,7 @@ function main() {
             obj.inc = 0;
             obj.round = {x:0, y:0};
             obj.target = {x:0, y:0};
+            createLabel(5, obj);
             objects.push(obj);
             scene.add(obj);
         }

@@ -7,3 +7,10 @@ body {
     display: block;
   }
   
+button {
+  text-decoration: none;
+  border: none;
+  border-radius: 2px;
+  background-color: blue;
+  color: white;
+}
